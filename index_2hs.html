@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000073">
+<title>2Hs Subportal · SPGo</title>
+<meta property="og:title" content="2Hs Subportal · SPGo">
+<meta property="og:description" content="Find your 2Hs — Bazi (ii) Ran & Bazi (iii) Yuri lookup portal.">
+<meta property="og:image" content="https://i.postimg.cc/MZsnjcLC/Blue-Orchid-Web-Email.png">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="https://i.postimg.cc/ryZgWswz/Go5_favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Noto+Serif+TC:wght@300;400&family=Aleo:wght@300;400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://spgo5.github.io/Go5.SHARED/spgo-core.css">
+
+<style>
+/* ============================================================
+   RESET & VARIABLES
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+button:active, [onclick]:active { opacity: 0.75 !important; transform: scale(0.96) !important; transition: opacity 0.08s, transform 0.08s !important; }
+
+:root {
+  --navy: #000073;
+  --navy-dark: #00004a;
+  --sky: #00BFFF;
+  --white: #ffffff;
+  --dim: rgba(255,255,255,0.12);
+  --dim2: rgba(255,255,255,0.06);
+  --border: rgba(0,191,255,0.25);
+  --border-dim: rgba(255,255,255,0.08);
+  --text: #ffffff;
+  --text-mid: rgba(255,255,255,0.5);
+  --text-dim: rgba(255,255,255,0.35);
+  --red: #ff0000;
+  --green: #00cc44;
+  --gold: #FFD700;
+  --pink: #F3ABB6;
+  --purple: #E0B0FF;
+}
+
+html, body {
+  font-family: 'Crimson Pro', Georgia, serif;
+  background: var(--navy);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  font-size: 16px;
+}
+
+/* Profile pic top-right */
+#profile-corner {
+  position: fixed; top: 12px; right: 14px; z-index: 9999;
+  display: none; flex-direction: column; align-items: center;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+#profile-corner img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(0,191,255,0.5); box-shadow: 0 0 10px rgba(0,191,255,0.3); }
+#profile-corner img.flower-pic { border-radius: 0; border: none; background: transparent; object-fit: contain; box-shadow: none; filter: drop-shadow(0 0 6px rgba(0,191,255,0.7)) drop-shadow(0 0 14px rgba(0,191,255,0.4)); width: 42px; height: 42px; }
+#profile-corner-code { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.08em; color: rgba(0,191,255,0.7); margin-top: 3px; max-width: 50px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Logout popup */
+#logout-popup { position: fixed; top: 60px; right: 10px; z-index: 9999; background: rgba(0,0,60,0.97); border: 1px solid rgba(0,191,255,0.35); border-radius: 12px; padding: 14px 18px; display: none; flex-direction: column; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); min-width: 160px; }
+#logout-popup button { background: none; border: 1px solid rgba(255,80,80,0.5); color: rgba(255,150,150,0.9); font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.1em; padding: 10px 14px; border-radius: 8px; cursor: pointer; text-align: left; }
+#logout-popup button:active { opacity: 0.7; }
+
+/* ============================================================
+   SCREEN SYSTEM
+   ============================================================ */
+.screen { display: none; flex-direction: column; align-items: center; min-height: 100dvh; padding: 0 20px 60px; background: radial-gradient(ellipse at 50% 20%, rgba(0,191,255,0.12) 0%, transparent 65%), linear-gradient(180deg, var(--navy) 0%, var(--navy-dark) 100%); animation: fadeIn 0.35s ease; }
+.screen.active { display: flex; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes verifyPulse { 0%,100% { opacity:0.7; transform:scale(1); filter:drop-shadow(0 0 14px rgba(0,191,255,0.5)); } 50% { opacity:1; transform:scale(1.08); filter:drop-shadow(0 0 28px rgba(0,191,255,0.9)); } }
+@keyframes dotsAnim { 0% { content:''; } 25% { content:'.'; } 50% { content:'..'; } 75% { content:'...'; } }
+#verify-text::after { content:''; animation: dotsAnim 1.2s steps(4,end) infinite; }
+@keyframes haircutGlowBlob { 0%,100% { filter: drop-shadow(0 0 6px rgba(204,255,0,0.9)) drop-shadow(0 0 20px rgba(204,255,0,0.5)); transform: scale(1); } 50% { filter: drop-shadow(0 0 18px rgba(204,255,0,1)) drop-shadow(0 0 40px rgba(204,255,0,0.7)); transform: scale(1.07); } }
+@keyframes haircutPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.sp-loading { font-family: 'Crimson Pro', serif !important; font-style: italic !important; font-size: 15px !important; color: #ccff00 !important; animation: haircutPulse 1.2s ease-in-out infinite !important; text-align: center; }
+.sp-loading-img { animation: haircutGlowBlob 1.6s ease-in-out infinite !important; }
+
+/* ============================================================
+   SHARED COMPONENTS
+   ============================================================ */
+.site-label { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); margin: 32px 0 20px; text-align: center; }
+.logo-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 12px; }
+.logo-wrap img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 14px; filter: drop-shadow(0 0 18px rgba(0,191,255,0.5)); }
+.inner-header { width: 100%; max-width: 520px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 20px 0 16px; margin-bottom: 24px; }
+.back-btn { background: none; border: none; color: var(--sky); font-size: 26px; cursor: pointer; padding: 0 6px 0 0; flex-shrink: 0; line-height: 1; }
+.inner-title { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.15em; color: rgba(255,255,255,0.7); text-transform: uppercase; flex: 1; }
+
+/* ← Back to Super Portal link */
+.back-to-portal { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.12em; color: rgba(0,191,255,0.6); text-align: center; margin-top: 28px; cursor: pointer; }
+.back-to-portal:active { opacity: 0.6; }
+
+/* CARDS */
+.cards { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 14px; }
+.card { background: var(--dim); border: 1px solid var(--border); border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: background 0.25s, border-color 0.25s, transform 0.15s; -webkit-user-select: none; user-select: none; text-decoration: none; color: inherit; }
+.card:active { transform: scale(0.97); background: rgba(0,191,255,0.12); border-color: var(--sky); }
+.card-icon { width: 48px; flex-shrink: 0; text-align: center; font-size: 28px; }
+.card-icon img { width: 42px; height: 42px; object-fit: contain; display: block; margin: 0 auto; }
+.card-text { flex: 1; }
+.card-title { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; color: var(--sky); margin-bottom: 3px; }
+.card-desc { font-size: 13px; color: rgba(255,255,255,0.5); }
+.card-arrow { color: var(--sky); font-size: 20px; flex-shrink: 0; }
+
+/* BUTTONS */
+.btn-primary { width: 75%; height: 56px; border-radius: 12px; background: var(--sky); color: var(--navy); border: none; font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; letter-spacing: 0.1em; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 2Hs SPECIFIC STYLES */
+.hs-btn { display: flex; align-items: center; gap: 16px; border-radius: 16px; padding: 14px 20px; cursor: pointer; text-decoration: none; transition: opacity 0.15s; width: 100%; max-width: 420px; }
+.hs-btn:active { opacity: 0.75; }
+.hs-btn-orchid { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
+.hs-btn-body { display: flex; flex-direction: column; gap: 4px; }
+.hs-btn-num { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; letter-spacing: 0.1em; }
+.hs-btn-char { font-family: 'Noto Serif TC', serif; font-size: 22px; font-weight: 700; }
+.hs-btn-hint { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.1em; color: rgba(255,255,255,0.4); text-align: center; margin-bottom: 8px; }
+
+.dob-select { width: 100%; height: 54px; border-radius: 10px; border: 2px solid rgba(0,191,255,0.3); background: rgba(0,0,0,0.35); color: var(--white); font-size: 14px; font-family: 'Crimson Pro', serif; padding: 0 16px; outline: none; appearance: none; cursor: pointer; transition: border-color 0.2s; }
+.dob-select:focus { border-color: var(--sky); }
+
+.start-over-btn { background: transparent; border: 1px solid rgba(0,191,255,0.3); color: rgba(0,191,255,0.7); font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.15em; padding: 12px 24px; border-radius: 10px; cursor: pointer; margin-top: 8px; }
+
+.fcs-container { border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.12); margin-bottom:16px; background:rgba(255,255,255,0.04); }
+.fcs-section-label { font-family:'Cinzel',serif; font-size:13px; letter-spacing:0.15em; color:#ffffff; text-transform:uppercase; text-align:center; margin-bottom:12px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1); }
+.fcs-row { display:flex; flex-direction:row; align-items:stretch; gap:0; margin-bottom:0; border-radius:0; overflow:hidden; border:none; border-bottom:1px solid rgba(255,255,255,0.06); background:transparent; }
+.fcs-row:last-child { border-bottom:none; }
+.fcs-emoji-box { width:64px; min-width:64px; background:transparent; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; padding:8px; gap:2px; font-size:18px; line-height:1.3; border-right:1px solid rgba(255,255,255,0.07); }
+.fcs-mr-box { flex:1; background:transparent; padding:12px 14px; display:flex; flex-direction:column; justify-content:center; gap:3px; }
+.fcs-cn { font-family:'Noto Serif TC',serif; font-size:15px; font-weight:700; color:#ff6666; line-height:1.3; }
+.fcs-vn { font-family:'Noto Serif TC',serif; font-size:13px; color:#cc88ff; line-height:1.3; }
+.fcs-en { font-family:'Roboto',sans-serif; font-size:12px; color:#ffffff; opacity:0.85; line-height:1.3; }
+.fcs-check-box { width:32px; min-width:32px; background:rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; font-size:16px; color:#00cc44; }
+
+.visit-counter { margin-top: 60px; text-align: center; }
+.visit-label { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.15em; color: rgba(255,255,255,0.35); }
+.visit-num { font-size: 22px; color: rgba(255,255,255,0.6); display: block; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<!-- Profile pic corner -->
+<div id="profile-corner" onclick="toggleLogoutPopup()">
+  <img id="profile-corner-img" src="" alt="">
+  <div id="profile-corner-code"></div>
+</div>
+<div id="logout-popup">
+  <button onclick="showProfilePicUploader()" style="background:none;border:1px solid rgba(0,191,255,0.4);color:rgba(0,191,255,0.85);font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.08em;padding:10px 14px;border-radius:8px;cursor:pointer;text-align:left;">👤 Change profile pic</button>
+  <button onclick="useDefaultProfilePic()" style="background:none;border:1px solid rgba(0,191,255,0.3);color:rgba(0,191,255,0.65);font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.08em;padding:10px 14px;border-radius:8px;cursor:pointer;text-align:left;">👤 Use default profile pic</button>
+  <button onclick="doLogout()">⟵ Log out</button>
+</div>
+
+<!-- Profile Pic Uploader Modal -->
+<div id="profile-pic-modal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,40,0.92); flex-direction:column; align-items:center; justify-content:center; padding:24px;">
+  <div style="background:#000073; border:1px solid rgba(0,191,255,0.3); border-radius:16px; padding:24px; width:100%; max-width:380px; display:flex; flex-direction:column; align-items:center; gap:16px;">
+    <div style="font-family:'Cinzel',serif; font-size:14px; color:var(--sky); letter-spacing:0.12em;">Change Profile Pic</div>
+    <div style="font-family:'Crimson Pro',serif; font-size:12px; font-style:italic; color:rgba(255,100,100,0.8); text-align:center;">Replacing this photo permanently deletes it. There's no profile album like Facebook.</div>
+    <div id="ppu-step1" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:12px;">
+      <label style="width:100%; padding:14px; background:rgba(0,191,255,0.1); border:1px dashed rgba(0,191,255,0.4); border-radius:10px; text-align:center; cursor:pointer; font-family:'Crimson Pro',serif; font-size:14px; color:var(--sky);">
+        📁 Pick a photo
+        <input type="file" accept="image/*" id="ppu-file-input" style="display:none;" onchange="ppuFileChosen(this)">
+      </label>
+    </div>
+    <div id="ppu-step2" style="display:none; width:100%; flex-direction:column; align-items:center; gap:12px;">
+      <div style="font-family:'Crimson Pro',serif; font-size:12px; color:rgba(255,255,255,0.6); text-align:center;">Drag to reposition · Pinch or scroll to zoom</div>
+      <div style="font-family:'Crimson Pro',serif; font-size:11px; color:rgba(204,255,0,0.6); text-align:center; font-style:italic; margin-top:-6px;">Tap the circle to pick a different photo</div>
+      <div id="ppu-crop-wrap" style="position:relative; width:260px; height:260px; border-radius:50%; overflow:hidden; border:3px solid rgba(204,255,0,0.8); cursor:grab; touch-action:none; flex-shrink:0;" ondblclick="document.getElementById('ppu-file-input').click()">
+        <img id="ppu-img" style="position:absolute; transform-origin:top left;" draggable="false">
+      </div>
+      <div style="display:flex; gap:10px; width:100%;">
+        <button onclick="ppuZoom(-0.1)" style="flex:1; padding:10px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:white; border-radius:8px; font-size:18px; cursor:pointer;">−</button>
+        <button onclick="ppuZoom(0.1)" style="flex:1; padding:10px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:white; border-radius:8px; font-size:18px; cursor:pointer;">+</button>
+      </div>
+      <button id="ppu-fit-btn" onclick="ppuFitObject()" style="width:100%; padding:10px; background:rgba(204,255,0,0.12); border:1px solid rgba(204,255,0,0.5); color:#ccff00; border-radius:8px; font-family:'Cinzel',serif; font-size:12px; letter-spacing:0.1em; cursor:pointer;">⊡ Fit object inside circle</button>
+      <button onclick="ppuUpload()" id="ppu-upload-btn" style="width:100%; padding:14px; background:var(--sky); color:#000073; font-family:'Cinzel',serif; font-size:13px; font-weight:700; border:none; border-radius:10px; cursor:pointer; letter-spacing:0.1em;">Save & Upload</button>
+      <div id="ppu-status" style="font-family:'Crimson Pro',serif; font-size:13px; color:rgba(255,255,255,0.7); font-style:italic; text-align:center; min-height:20px;"></div>
+    </div>
+    <button onclick="closePpuModal()" style="background:none; border:none; color:rgba(255,255,255,0.4); font-family:'Cinzel',serif; font-size:11px; cursor:pointer; letter-spacing:0.1em;">✕ Cancel</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN 0: LOGIN
+     ============================================================ -->
+<div id="screen-B0-login" class="screen active">
+  <div class="site-label">2Hs SUBPORTAL</div>
+  <div class="logo-wrap">
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
+      <img src="https://i.postimg.cc/MZsnjcLC/Blue-Orchid-Web-Email.png" alt="Orchid" style="width:64px; height:64px; object-fit:contain; filter:drop-shadow(0 0 16px rgba(0,191,255,0.6));">
+      <img src="https://i.postimg.cc/K8kWmKK7/Kisuge-single-web-email.png" alt="Kisuge" style="width:52px; height:52px; object-fit:contain; filter:drop-shadow(0 0 12px rgba(0,191,255,0.4));">
+    </div>
+    <div style="font-family:'Aleo',serif; font-size:22px; font-weight:400; color:var(--sky); text-align:center; letter-spacing:0.08em; line-height:1.2;">2Hs SUBPORTAL</div>
+    <div style="font-family:'Cinzel',serif; font-size:14px; font-weight:400; color:#e0b0ff; text-align:center; letter-spacing:0.2em; line-height:1.5; margin-top:6px;">Bazi (ii) Ran · Bazi (iii) Yuri</div>
+  </div>
+
+  <div class="cards" style="margin-top: 24px;">
+    <div class="card" id="btn-google-login" onclick="startGoogleLogin()">
+      <div class="card-icon">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:32px; height:32px; object-fit:contain; display:block; margin:0 auto;">
+      </div>
+      <div class="card-text">
+        <div class="card-title">Log in with Gmail</div>
+        <div class="card-desc">Login is handled completely by Google OAuth.</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </div>
+
+    <p id="login-error" style="display:none; color:var(--red); font-size:12px; text-align:center; margin-top:-4px; max-width:360px; line-height:1.6;"></p>
+
+    <div class="card" onclick="guestLogin()">
+      <div class="card-icon">👤</div>
+      <div class="card-text">
+        <div class="card-title">Access as guest</div>
+        <div class="card-desc">Limited access — some tools unavailable</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </div>
+  </div>
+
+  <div class="back-to-portal" onclick="window.location.href='https://spgo5.github.io/Go5/'">← Super Portal</div>
+
+  <div class="portal-footer">
+    <div class="footer-credit">Developed by <strong>Claude</strong> · Conceived &amp; directed by <strong>SPGo</strong></div>
+    <div class="footer-copy">© 2026 · SPGo · All rights reserved</div>
+  </div>
+</div>
+
+<!-- VERIFYING OVERLAY -->
+<div id="screen-B0-verify" class="screen" style="justify-content:center; align-items:center; background:radial-gradient(ellipse at 50% 30%,rgba(0,191,255,0.12) 0%,transparent 65%),linear-gradient(180deg,#000073 0%,#00004a 100%);">
+  <div style="display:flex; align-items:center; gap:14px; margin-bottom:28px;">
+    <img src="https://i.postimg.cc/MZsnjcLC/Blue-Orchid-Web-Email.png" alt="2Hs" style="width:70px; height:70px; object-fit:contain; filter:drop-shadow(0 0 18px rgba(0,191,255,0.6)); animation:verifyPulse 1.4s ease-in-out infinite;">
+    <img src="https://i.postimg.cc/K8kWmKK7/Kisuge-single-web-email.png" alt="2Hs" style="width:56px; height:56px; object-fit:contain; filter:drop-shadow(0 0 14px rgba(0,191,255,0.5)); animation:verifyPulse 1.4s ease-in-out infinite 0.3s;">
+  </div>
+  <div class="sp-loading" id="verify-text" style="margin-top:20px;">Loading…</div>
+</div>
+
+<!-- ============================================================
+     SCREEN HOME: 2Hs PORTAL
+     ============================================================ -->
+<div id="screen-home" class="screen" style="background:radial-gradient(ellipse at 50% 30%,rgba(0,191,255,0.12) 0%,transparent 65%),linear-gradient(180deg,#000073 0%,#00004a 100%); justify-content:center;">
+  <div class="inner-header" style="max-width:420px; width:100%; position:absolute; top:0;">
+    <button class="back-btn" onclick="window.location.href='https://spgo5.github.io/Go5/'">‹</button>
+    <span class="inner-title">五 Go Super Portal</span>
+  </div>
+  <div style="display:flex; flex-direction:column; align-items:center; padding-top:80px; width:100%;">
+    <div class="site-label" style="margin-bottom:14px;">2Hs SUBPORTAL</div>
+    <div style="display:flex; align-items:center; gap:14px; margin-bottom:32px;">
+      <img src="https://i.postimg.cc/MZsnjcLC/Blue-Orchid-Web-Email.png" alt="Orchid" style="width:70px; height:70px; object-fit:contain; filter:drop-shadow(0 0 18px rgba(0,191,255,0.5));">
+      <img src="https://i.postimg.cc/K8kWmKK7/Kisuge-single-web-email.png" alt="Kisuge" style="width:60px; height:60px; object-fit:contain; filter:drop-shadow(0 0 14px rgba(0,191,255,0.4));">
+    </div>
+    <div class="cards">
+      <div class="card" onclick="goTo('screen-quick')">
+        <div class="card-icon">⚡</div>
+        <div class="card-text">
+          <div class="card-title">Quickly Locate Your 2Hs</div>
+          <div class="card-desc">Key in your ID code</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
+      <div class="card" onclick="goTo('screen-find')">
+        <div class="card-icon">🔍</div>
+        <div class="card-text">
+          <div class="card-title">Find Your 2Hs</div>
+          <div class="card-desc">Key in your date of birth</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
+      <div class="card" onclick="goTo('screen-dir')">
+        <div class="card-icon">📁</div>
+        <div class="card-text">
+          <div class="card-title">Directory</div>
+          <div class="card-desc">Full directory of all 100 2Hs</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </div>
+    </div>
+    <div class="visit-counter">
+      <div class="visit-label">VISITS</div>
+      <span class="visit-num" id="hs-visit-count">—</span>
+    </div>
+  </div>
+  <div class="portal-footer">
+    <div class="footer-credit">Developed by <strong>Claude</strong> · Conceived &amp; directed by <strong>SPGo</strong></div>
+    <div class="footer-copy">© 2026 · SPGo · All rights reserved</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: 2Hs QUICK SEARCH
+     ============================================================ -->
+<div id="screen-quick" class="screen" style="background:radial-gradient(ellipse at 50% 0%,rgba(0,191,255,0.08) 0%,transparent 60%),linear-gradient(180deg,#000073 0%,#00004a 100%);">
+  <div class="inner-header" style="max-width:520px; width:100%;">
+    <button class="back-btn" onclick="goTo('screen-home')">‹</button>
+    <span class="inner-title">2Hs Subportal</span>
+  </div>
+  <div style="width:100%; max-width:480px;">
+    <div style="text-align:center; margin-bottom:40px;">
+      <img src="https://i.postimg.cc/hvw4ZmWx/MOTH-orchid-WHITE-web-email.png" style="width:70px; height:70px; object-fit:contain;">
+    </div>
+    <span style="font-size:13px; letter-spacing:0.12em; color:rgba(255,255,255,0.45); text-transform:uppercase; margin-bottom:8px; display:block;">Enter your ID code</span>
+    <input type="text" id="hs-id-input" style="width:100%; padding:18px 20px; font-size:22px; font-family:'Cinzel',serif; letter-spacing:0.15em; border-radius:12px; border:2px solid rgba(0,191,255,0.4); background:rgba(0,0,0,0.3); color:#fff; text-align:center; text-transform:uppercase; outline:none; margin-bottom:20px;" placeholder="TYPE HERE" autocomplete="off" autocorrect="off" spellcheck="false" oninput="hsFindByID()" onkeydown="if(event.key==='Enter'||event.key==='Go'){this.blur();hsFindByID();}">
+    <div id="hs-id-no-result" style="color:#ff8a80; text-align:center; font-size:14px; display:none; margin-bottom:12px;">✕ ID CODE NOT FOUND</div>
+    <div id="hs-id-result-wrap" style="display:none; flex-direction:column; align-items:center; gap:12px;">
+      <div style="text-align:center; margin-top:40px; margin-bottom:8px;"><img src="https://i.postimg.cc/MZsnjcLC/Blue-Orchid-Web-Email.png" style="width:60px; height:60px; object-fit:contain; filter:drop-shadow(0 0 18px rgba(0,191,255,0.5));"></div>
+      <div style="font-size:12px; color:#ff0000; text-align:center; margin:20px 0;">⚠️ Accessing any of the 100 2Hs sites—except No. 3 (free demo)—requires a prior subscription.</div>
+      <a id="hs-id-btn-ran" class="hs-btn" target="_blank">
+        <img class="hs-btn-orchid" src="https://i.postimg.cc/MZsnjcLC/Blue-Orchid-Web-Email.png">
+        <div class="hs-btn-body"><div class="hs-btn-num" id="hs-id-num-ran"></div><div class="hs-btn-char" id="hs-id-lbl-ran"></div></div>
+      </a>
+      <span class="hs-btn-hint">Tap to open the 2Hs site ↗</span>
+      <a id="hs-id-btn-yuri" class="hs-btn" target="_blank" style="margin-top:12px;">
+        <img class="hs-btn-orchid" src="https://i.postimg.cc/K8kWmKK7/Kisuge-single-web-email.png">
+        <div class="hs-btn-body"><div class="hs-btn-num" id="hs-id-num-yuri"></div><div class="hs-btn-char" id="hs-id-lbl-yuri"></div></div>
+      </a>
+      <span class="hs-btn-hint">Tap to open the 2Hs site ↗</span>
+      <button class="start-over-btn" onclick="hsResetID()">↺ START OVER</button>
+    </div>
+  </div>
+  <div class="portal-footer">
+    <div class="footer-credit">Developed by <strong>Claude</strong> · Conceived &amp; directed by <strong>SPGo</strong></div>
+    <div class="footer-copy">© 2026 · SPGo · All rights reserved</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: 2Hs FIND BY DOB — INPUT
+     ============================================================ -->
+<div id="screen-find" class="screen" style="background:radial-gradient(ellipse at 50% 0%,rgba(0,191,255,0.08) 0%,transparent 60%),linear-gradient(180deg,#000073 0%,#00004a 100%);">
+  <div class="inner-header" style="max-width:520px; width:100%;">
+    <button class="back-btn" onclick="goTo('screen-home')">‹</button>
+    <span class="inner-title">2Hs Subportal</span>
+  </div>
+  <div style="width:100%; max-width:480px;">
+    <div style="text-align:center; margin-bottom:20px;"><img src="https://i.postimg.cc/5tVbTphW/MOTH-orchid-pink-web-email.png" style="width:70px; height:70px; object-fit:contain;"></div>
+    <span style="font-size:13px; letter-spacing:0.12em; color:rgba(255,255,255,0.45); text-transform:uppercase; margin-bottom:8px; margin-top:20px; display:block;">📅 Date of birth</span>
+    <div style="font-size:12px; color:rgba(255,255,255,0.3); margin-bottom:14px; font-style:italic;">Use your Gregorian (solar) date — do not use the lunar calendar.</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1.4fr; gap:10px; margin-bottom:20px;">
+      <select id="hs-dob-day" class="dob-select">
+        <option value="">Day</option>
+        <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option><option>24</option><option>25</option><option>26</option><option>27</option><option>28</option><option>29</option><option>30</option><option>31</option>
+      </select>
+      <select id="hs-dob-month" class="dob-select">
+        <option value="">Month</option>
+        <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option><option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+      </select>
+      <select id="hs-dob-year" class="dob-select"><option value="">Year</option></select>
+    </div>
+    <span style="font-size:13px; letter-spacing:0.12em; color:rgba(255,255,255,0.45); text-transform:uppercase; margin-bottom:8px; display:block;">🕐 Hour of birth</span>
+    <select id="hs-dob-time" class="dob-select" style="width:100%; margin-bottom:24px;">
+      <option value="">Select hour</option>
+      <option value="00:30">00:00 – 01:00 — 🐭 子 (Rat, Tí)</option>
+      <option value="02:00">01:00 – 03:00 — 🐂 丑 (Ox, Sửu)</option>
+      <option value="04:00">03:00 – 05:00 — 🐅 寅 (Tiger, Dần)</option>
+      <option value="06:00">05:00 – 07:00 — 🐇 卯 (Rabbit, Mão)</option>
+      <option value="08:00">07:00 – 09:00 — 🐉 辰 (Dragon, Thìn)</option>
+      <option value="10:00">09:00 – 11:00 — 🐍 巣 (Snake, Tị)</option>
+      <option value="12:00">11:00 – 13:00 — 🐴 午 (Horse, Ngọ)</option>
+      <option value="14:00">13:00 – 15:00 — 🐏 未 (Goat, Mùi)</option>
+      <option value="16:00">15:00 – 17:00 — 🐒 申 (Monkey, Thân)</option>
+      <option value="18:00">17:00 – 19:00 — 🐓 酉 (Rooster, Dậu)</option>
+      <option value="20:00">19:00 – 21:00 — 🐕 戌 (Dog, Tuất)</option>
+      <option value="22:00">21:00 – 23:00 — 🐖 亥 (Pig, Hợi)</option>
+      <option value="23:30">23:00 – 24:00 — 🐭 子 (Rat, Tí)</option>
+    </select>
+    <button id="hs-gen-btn" class="btn-primary" style="display:block; margin:0 auto 10px;" onclick="hsCalculateDOB()">Generate</button>
+    <div id="hs-dob-error" style="color:#ff8a80; font-size:13px; text-align:center; display:none; margin-bottom:12px;">Please fill in all fields.</div>
+  </div>
+  <div class="portal-footer">
+    <div class="footer-credit">Developed by <strong>Claude</strong> · Conceived &amp; directed by <strong>SPGo</strong></div>
+    <div class="footer-copy">© 2026 · SPGo · All rights reserved</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: 2Hs FIND BY DOB — RESULT
+     ============================================================ -->
+<div id="screen-result" class="screen" style="background:radial-gradient(ellipse at 50% 0%,rgba(0,191,255,0.08) 0%,transparent 60%),linear-gradient(180deg,#000073 0%,#00004a 100%);">
+  <div class="inner-header" style="max-width:520px; width:100%;">
+    <button class="back-btn" onclick="goTo('screen-find')">‹</button>
+    <span class="inner-title">Find Your 2Hs</span>
+  </div>
+  <div style="width:100%; max-width:480px; display:flex; flex-direction:column; align-items:center;">
+    <img src="https://i.postimg.cc/hvw4ZmWx/MOTH-orchid-WHITE-web-email.png" style="width:80px; height:80px; object-fit:contain; margin-bottom:12px;">
+    <div id="hs-dob-meta" style="font-size:13px; color:rgba(255,255,255,0.4); text-align:center; margin-bottom:20px;"></div>
+    <div style="font-family:'Cinzel',serif; font-size:14px; letter-spacing:0.15em; color:#fff; text-transform:uppercase; text-align:center; margin:32px 0 16px;">Your Bazi:</div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:24px; width:100%;">
+      <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px 6px; text-align:center; border:1px solid rgba(255,255,255,0.1);">
+        <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:8px;">年 Year</div>
+        <div style="font-size:32px; font-weight:700; line-height:1; margin-bottom:8px;" id="hs-r-year"></div>
+        <div style="font-size:11px; color:rgba(255,255,255,0.5); font-style:italic;" id="hs-v-year"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px 6px; text-align:center; border:1px solid rgba(255,255,255,0.1);">
+        <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:8px;">月 Month</div>
+        <div style="font-size:32px; font-weight:700; line-height:1; margin-bottom:8px;" id="hs-r-month"></div>
+        <div style="font-size:11px; color:rgba(255,255,255,0.5); font-style:italic;" id="hs-v-month"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px 6px; text-align:center; border:1px solid rgba(255,255,255,0.1);">
+        <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:8px;">日 Day</div>
+        <div style="font-size:32px; font-weight:700; line-height:1; margin-bottom:8px;" id="hs-r-day"></div>
+        <div style="font-size:11px; color:rgba(255,255,255,0.5); font-style:italic;" id="hs-v-day"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px 6px; text-align:center; border:1px solid rgba(255,255,255,0.1);">
+        <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:8px;">時 Hour</div>
+        <div style="font-size:32px; font-weight:700; line-height:1; margin-bottom:8px;" id="hs-r-hour"></div>
+        <div style="font-size:11px; color:rgba(255,255,255,0.5); font-style:italic;" id="hs-v-hour"></div>
+      </div>
+    </div>
+    <div style="font-family:'Cinzel',serif; font-size:14px; letter-spacing:0.15em; color:#fff; text-transform:uppercase; text-align:center; margin-top:32px; margin-bottom:8px;">Your 2Hs ↓</div>
+    <div style="font-size:12px; color:#ff0000; text-align:center; margin:7px 0 28px;">⚠️ Accessing any of the 100 2Hs sites—except No. 3 (free demo)—requires a prior subscription.</div>
+    <a id="hs-dob-btn-ran" class="hs-btn" target="_blank">
+      <img class="hs-btn-orchid" src="https://i.postimg.cc/MZsnjcLC/Blue-Orchid-Web-Email.png">
+      <div class="hs-btn-body"><div class="hs-btn-num" id="hs-dob-num-ran"></div><div class="hs-btn-char" id="hs-dob-char-ran"></div></div>
+    </a>
+    <span class="hs-btn-hint">Tap to open the 2Hs site ↗</span>
+    <div id="fcs-ran-wrap" style="display:none; width:100%; max-width:520px; margin-top:20px;">
+      <div class="fcs-section-label">4Cs — Bazi (ii) Ran</div>
+      <div id="fcs-ran-list" class="fcs-container"></div>
+      <div class="fcs-section-label" style="margin-top:20px;">Structure — Bazi (ii) Ran</div>
+      <div id="str-ran-wrap" class="fcs-container"></div>
+    </div>
+    <a id="hs-dob-btn-yuri" class="hs-btn" target="_blank" style="margin-top:32px;">
+      <img class="hs-btn-orchid" src="https://i.postimg.cc/K8kWmKK7/Kisuge-single-web-email.png">
+      <div class="hs-btn-body"><div class="hs-btn-num" id="hs-dob-num-yuri"></div><div class="hs-btn-char" id="hs-dob-char-yuri"></div></div>
+    </a>
+    <span class="hs-btn-hint">Tap to open the 2Hs site ↗</span>
+    <div id="fcs-yuri-wrap" style="display:none; width:100%; max-width:520px; margin-top:20px;">
+      <div class="fcs-section-label">4Cs — Bazi (iii) Yuri</div>
+      <div id="fcs-yuri-list" class="fcs-container"></div>
+      <div class="fcs-section-label" style="margin-top:20px;">Structure — Bazi (iii) Yuri</div>
+      <div id="str-yuri-wrap" class="fcs-container"></div>
+    </div>
+    <div style="display:flex; gap:10px; width:100%; margin-top:28px;">
+      <button onclick="hs2HsCopyImage()" style="flex:1; padding:12px 8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); color:white; font-family:'Cinzel',serif; font-size:11px; letter-spacing:0.08em; border-radius:10px; cursor:pointer;">Copy Result 📷</button>
+      <button onclick="hs2HsCopyText()" style="flex:1; padding:12px 8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); color:white; font-family:'Cinzel',serif; font-size:11px; letter-spacing:0.08em; border-radius:10px; cursor:pointer;">Copy Result 📄</button>
+    </div>
+    <button class="start-over-btn" onclick="hsResetDOB()" style="margin-top:16px;">↺ START OVER</button>
+  </div>
+  <div class="portal-footer">
+    <div class="footer-credit">Developed by <strong>Claude</strong> · Conceived &amp; directed by <strong>SPGo</strong></div>
+    <div class="footer-copy">© 2026 · SPGo · All rights reserved</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: 2Hs DIRECTORY
+     ============================================================ -->
+<div id="screen-dir" class="screen">
+  <div class="inner-header" style="max-width:520px; width:100%;">
+    <button class="back-btn" onclick="goTo('screen-home')">‹</button>
+    <span class="inner-title">2Hs Subportal</span>
+  </div>
+  <div style="text-align:center; margin-bottom:24px;"><img src="https://i.postimg.cc/hvw4ZmWx/MOTH-orchid-WHITE-web-email.png" style="width:70px; height:70px; object-fit:contain;"></div>
+  <div style="font-size:12px; color:#ff0000; text-align:center; margin-bottom:28px; width:100%; max-width:400px;">⚠️ Accessing any site—except No. 3 (free demo)—requires a prior subscription.</div>
+  <div class="cards">
+    <div class="card" onclick="goTo('screen-dir-ran')">
+      <div class="card-icon"><img src="https://i.postimg.cc/MZsnjcLC/Blue-Orchid-Web-Email.png" style="width:42px;height:42px;object-fit:contain;"></div>
+      <div class="card-text">
+        <div class="card-title">Bazi (ii) Ran — 100 2Hs</div>
+        <div class="card-desc">Browse all 100 Bazi (ii) Ran's 2Hs</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </div>
+    <div class="card" onclick="goTo('screen-dir-yuri')">
+      <div class="card-icon"><img src="https://i.postimg.cc/K8kWmKK7/Kisuge-single-web-email.png" style="width:42px;height:42px;object-fit:contain;"></div>
+      <div class="card-text">
+        <div class="card-title">Bazi (iii) Yuri — 100 2Hs</div>
+        <div class="card-desc">Browse all 100 Bazi (iii) Yuri's 2Hs</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </div>
+  </div>
+  <div class="portal-footer">
+    <div class="footer-credit">Developed by <strong>Claude</strong> · Conceived &amp; directed by <strong>SPGo</strong></div>
+    <div class="footer-copy">© 2026 · SPGo · All rights reserved</div>
+  </div>
+</div>
+
+<!-- DIRECTORY RAN -->
+<div id="screen-dir-ran" class="screen">
+  <div class="inner-header" style="max-width:520px; width:100%;">
+    <button class="back-btn" onclick="goTo('screen-dir')">‹</button>
+    <span class="inner-title">2Hs Directory</span>
+  </div>
+  <input type="number" min="1" max="100" placeholder="Filter by number..." oninput="hsFilterDir('hs-dir-ran-grid',this.value)" style="width:100%; max-width:520px; padding:14px 18px; font-size:16px; font-family:'Cinzel',serif; border-radius:10px; border:2px solid rgba(0,191,255,0.3); background:rgba(0,0,0,0.3); color:#fff; outline:none; margin-bottom:20px; -webkit-appearance:none;">
+  <div id="hs-dir-ran-grid" style="width:100%; max-width:520px; display:flex; flex-direction:column; gap:16px; padding-bottom:20px;"></div>
+</div>
+
+<!-- DIRECTORY YURI -->
+<div id="screen-dir-yuri" class="screen">
+  <div class="inner-header" style="max-width:520px; width:100%;">
+    <button class="back-btn" onclick="goTo('screen-dir')">‹</button>
+    <span class="inner-title">2Hs Directory</span>
+  </div>
+  <input type="number" min="1" max="100" placeholder="Filter by number..." oninput="hsFilterDir('hs-dir-yuri-grid',this.value)" style="width:100%; max-width:520px; padding:14px 18px; font-size:16px; font-family:'Cinzel',serif; border-radius:10px; border:2px solid rgba(0,191,255,0.3); background:rgba(0,0,0,0.3); color:#fff; outline:none; margin-bottom:20px; -webkit-appearance:none;">
+  <div id="hs-dir-yuri-grid" style="width:100%; max-width:520px; display:flex; flex-direction:column; gap:16px; padding-bottom:20px;"></div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script src="https://spgo5.github.io/Go5.SHARED/spgo-core.js"></script>
+<script>
+// ============================================================
+// PORTAL OVERRIDES (must come after spgo-core.js)
+// ============================================================
+function goTo(screenId) {
+  const current = navStack[navStack.length - 1];
+  if (current !== screenId) navStack.push(screenId);
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(screenId);
+  if (target) { target.classList.add('active'); window.scrollTo(0, 0); }
+  history.pushState({ screenId }, '', '#' + screenId);
+
+  if (screenId === 'screen-find') {
+    ['hs-dob-day','hs-dob-month','hs-dob-year','hs-dob-time'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    const errEl = document.getElementById('hs-dob-error');
+    if (errEl) errEl.style.display = 'none';
+    const btn = document.getElementById('hs-gen-btn');
+    if (btn) { btn.disabled = false; btn.textContent = 'Generate'; }
+  }
+  if (screenId === 'screen-B0-login') {
+    try { localStorage.removeItem('go_saved_user'); } catch(e) {}
+    currentUser = null; currentUserName = 'Guest'; isGuest = false;
+    currentFsSubscriber = false; currentHasPortal = false;
+  }
+}
+
+function setHomeState() {
+  goTo('screen-home');
+  updateProfileCorner();
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+  goTo('screen-B0-login');
+}
+
+function showVerifying() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-B0-verify').style.display = 'flex';
+}
+
+function guestLogin() {
+  isGuest = true;
+  currentUser = 'GUEST';
+  currentUserName = 'Guest';
+  setHomeState();
+}
+
+function doLogout() {
+  try { localStorage.removeItem('go_saved_user'); } catch(e) {}
+  currentUser = null; currentUserName = 'Guest'; isGuest = false;
+  currentFsSubscriber = false; currentHasPortal = false;
+  const pc = document.getElementById('profile-corner');
+  if (pc) pc.style.display = 'none';
+  const lp = document.getElementById('logout-popup');
+  if (lp) lp.style.display = 'none';
+  goTo('screen-B0-login');
+}
+
+const navStack = ['screen-B0-login'];
+
+window.addEventListener('popstate', function(e) {
+  if (navStack.length > 1) {
+    navStack.pop();
+    const prev = navStack[navStack.length - 1];
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(prev);
+    if (target) { target.classList.add('active'); window.scrollTo(0, 0); }
+  } else {
+    history.pushState({ screenId: navStack[0] }, '', '#' + navStack[0]);
+  }
+});
+
+// Swipe right = go back
+let swipeStartX = 0, swipeStartY = 0;
+document.addEventListener('touchstart', e => { swipeStartX = e.touches[0].clientX; swipeStartY = e.touches[0].clientY; }, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - swipeStartX;
+  const dy = e.changedTouches[0].clientY - swipeStartY;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2 && dx > 0) {
+    if (navStack.length > 1) { navStack.pop(); const prev = navStack[navStack.length - 1]; document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); const t = document.getElementById(prev); if (t) { t.classList.add('active'); window.scrollTo(0,0); } }
+  }
+}, { passive: true });
+
+if (!window.location.hash.includes('access_token')) {
+  history.replaceState({ screenId: 'screen-B0-login' }, '', '#screen-B0-login');
+}
+
+// ============================================================
+// 2Hs MODULE
+// ============================================================
+const HS_BAZI_SCRIPT = "https://script.google.com/macros/s/AKfycbwKMhasSWopAOY2iTTeEzdmpxpXuRw9JsJynkPumHbgukPEwmUtYD8Sp-0JNLA_QPj_Jg/exec";
+const HS_ID_SCRIPT = "https://script.google.com/macros/s/AKfycbwpObh1qbXLW9HYKV2BmqHp5-gVPbA5afxuntzj5gjQMbBZoTvZSoEQSAte74PUB8Kw/exec";
+
+const HS_LABELS = ["甲 甲","甲 乙","甲 丙","甲 丁","甲 戊","甲 己","甲 庚","甲 辛","甲 壬","甲 癸","乙 甲","乙 乙","乙 丙","乙 丁","乙 戊","乙 己","乙 庚","乙 辛","乙 壬","乙 癸","丙 甲","丙 乙","丙 丙","丙 丁","丙 戊","丙 己","丙 庚","丙 辛","丙 壬","丙 癸","丁 甲","丁 乙","丁 丙","丁 丁","丁 戊","丁 己","丁 庚","丁 辛","丁 壬","丁 癸","戊 甲","戊 乙","戊 丙","戊 丁","戊 戊","戊 己","戊 庚","戊 辛","戊 壬","戊 癸","己 甲","己 乙","己 丙","己 丁","己 戊","己 己","己 庚","己 辛","己 壬","己 癸","庚 甲","庚 乙","庚 丙","庚 丁","庚 戊","庚 己","庚 庚","庚 辛","庚 壬","庚 癸","辛 甲","辛 乙","辛 丙","辛 丁","辛 戊","辛 己","辛 庚","辛 辛","辛 壬","辛 癸","壬 甲","壬 乙","壬 丙","壬 丁","壬 戊","壬 己","壬 庚","壬 辛","壬 壬","壬 癸","癸 甲","癸 乙","癸 丙","癸 丁","癸 戊","癸 己","癸 庚","癸 辛","癸 壬","癸 癸"];
+
+const HS_STEMS = {'甲':'Giáp','乙':'Ất','丙':'Bính','丁':'Đinh','戊':'Mậu','己':'Kỉ','庚':'Canh','辛':'Tân','壬':'Nhâm','癸':'Quí'};
+const HS_BRANCHES = {'子':'Tí','丑':'Sửu','寅':'Dần','卯':'Mão','辰':'Thìn','巳':'Tị','午':'Ngọ','未':'Mùi','申':'Thân','酉':'Dậu','戌':'Tuất','亥':'Hợi'};
+const HS_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let hsClientGroups = {}, hsStructures = {};
+
+function hsGetColors(n) {
+  if (n<=10) return {bg:"#2B5D34",tx:"#0CDD08",num:"#ffffff"};
+  if (n<=20) return {bg:"#0CDD08",tx:"#2B5D34",num:"#2B5D34"};
+  if (n<=30) return {bg:"#c10000",tx:"#fc6a03",num:"#ffffff"};
+  if (n<=40) return {bg:"#fc6a03",tx:"#c10000",num:"#ffffff"};
+  if (n<=50) return {bg:"#FFE302",tx:"#CA853C",num:"#ffffff"};
+  if (n<=60) return {bg:"#CA853C",tx:"#FFE302",num:"#ffffff"};
+  if (n<=70) return {bg:"#ffffff",tx:"#999999",num:"#999999"};
+  if (n<=80) return {bg:"#999999",tx:"#ffffff",num:"#ffffff"};
+  if (n<=90) return {bg:"#00BFFF",tx:"#0000cc",num:"#0000cc"};
+  return {bg:"#0000cc",tx:"#00BFFF",num:"#00BFFF"};
+}
+
+function hsToViet(t) {
+  if (!t || t.length < 2) return '';
+  return (HS_STEMS[t[0]] || HS_BRANCHES[t[0]] || t[0]) + ' ' + (HS_BRANCHES[t[1]] || HS_STEMS[t[1]] || t[1]);
+}
+
+function hsOrdinal(d) {
+  const s = ['th','st','nd','rd'], v = d % 100;
+  return d + (s[(v-20)%10] || s[v] || s[0]);
+}
+
+async function hsLoadClients() {
+  try {
+    const res = await fetch(HS_ID_SCRIPT);
+    const data = await res.json();
+    hsClientGroups = data.clientGroups || data;
+    hsStructures = data.structures || {};
+    hsPopulateYears();
+    hsLoadCount();
+    hsBuildDirGrid('hs-dir-ran-grid', 'https://sites.google.com/view/BaziiiRan', 'https://i.postimg.cc/MZsnjcLC/Blue-Orchid-Web-Email.png', false);
+    hsBuildDirGrid('hs-dir-yuri-grid', 'https://sites.google.com/view/BaziiiiYuri', 'https://i.postimg.cc/K8kWmKK7/Kisuge-single-web-email.png', true);
+  } catch(e) {}
+}
+
+function hsPopulateYears() {
+  const sel = document.getElementById('hs-dob-year');
+  if (!sel || sel.children.length > 1) return;
+  for (let y = 2026; y >= 1920; y--) {
+    const o = document.createElement('option');
+    o.value = o.textContent = y;
+    sel.appendChild(o);
+  }
+}
+
+function hsLoadCount() {
+  const cbName = 'hsCountCB_' + Date.now();
+  const script = document.createElement('script');
+  script.src = HS_BAZI_SCRIPT + '?action=count&callback=' + cbName;
+  window[cbName] = function(data) {
+    delete window[cbName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    if (data.count !== undefined) {
+      const el = document.getElementById('hs-visit-count');
+      if (el) el.textContent = data.count.toLocaleString();
+    }
+  };
+  document.head.appendChild(script);
+}
+
+function hsFindByID() {
+  const val = document.getElementById('hs-id-input').value.toUpperCase().trim();
+  const wrap = document.getElementById('hs-id-result-wrap');
+  const err = document.getElementById('hs-id-no-result');
+  if (!val) { wrap.style.display = 'none'; err.style.display = 'none'; return; }
+  const entry = Object.entries(hsClientGroups).find(([_, codes]) => codes.some(c => c.toUpperCase() === val));
+  if (entry) {
+    const n = parseInt(entry[0]), c = hsGetColors(n), padded = String(n).padStart(3,'0');
+    err.style.display = 'none'; wrap.style.display = 'flex';
+    const btnRan = document.getElementById('hs-id-btn-ran');
+    const btnYuri = document.getElementById('hs-id-btn-yuri');
+    [btnRan, btnYuri].forEach((btn, i) => {
+      btn.style.backgroundColor = c.bg; btn.style.color = c.tx;
+      btn.href = (i === 0 ? 'https://sites.google.com/view/BaziiiRan' : 'https://sites.google.com/view/BaziiiiYuri') + padded;
+    });
+    document.getElementById('hs-id-num-ran').textContent = 'No. ' + n;
+    document.getElementById('hs-id-num-ran').style.color = c.num;
+    document.getElementById('hs-id-lbl-ran').textContent = HS_LABELS[n-1];
+    document.getElementById('hs-id-num-yuri').textContent = 'No. ' + n;
+    document.getElementById('hs-id-num-yuri').style.color = c.num;
+    document.getElementById('hs-id-lbl-yuri').textContent = HS_LABELS[n-1];
+    const inp = document.getElementById('hs-id-input'); if(inp) inp.blur();
+  } else {
+    wrap.style.display = 'none'; err.style.display = 'block';
+  }
+}
+
+function hsResetID() {
+  document.getElementById('hs-id-input').value = '';
+  document.getElementById('hs-id-result-wrap').style.display = 'none';
+  document.getElementById('hs-id-no-result').style.display = 'none';
+}
+
+function hsCalculateDOB() {
+  const day = document.getElementById('hs-dob-day').value;
+  const month = document.getElementById('hs-dob-month').value;
+  const year = document.getElementById('hs-dob-year').value;
+  const time = document.getElementById('hs-dob-time').value;
+  const errEl = document.getElementById('hs-dob-error');
+  const btn = document.getElementById('hs-gen-btn');
+  if (!day || !month || !year || !time) { errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none'; btn.disabled = true; btn.textContent = 'Calculating...';
+
+  const cbName = 'hsBaziCB_' + Date.now();
+  const script = document.createElement('script');
+  const url = HS_BAZI_SCRIPT + '?day=' + day + '&month=' + month + '&year=' + year + '&time=' + encodeURIComponent(time) + '&callback=' + cbName;
+  const timeout = setTimeout(() => { cleanup(); errEl.textContent = 'Error connecting. Try again.'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Generate'; }, 15000);
+  function cleanup() { clearTimeout(timeout); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
+
+  window[cbName] = function(data) {
+    cleanup();
+    if (data.error === 'busy') { btn.textContent = 'Retrying in 2s...'; setTimeout(() => hsCalculateDOB(), 2000); return; }
+    if (data.error) { errEl.textContent = 'Error. Try again.'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Generate'; return; }
+
+    const hlFirst = (t, hl) => { if (!t) return t; return hl ? '<span style="font-size:1.2em;">' + t[0] + '</span>' + t.slice(1) : t; };
+    document.getElementById('hs-r-year').innerHTML = hlFirst(data.year, true);
+    document.getElementById('hs-r-month').innerHTML = hlFirst(data.month, false);
+    document.getElementById('hs-r-day').innerHTML = hlFirst(data.day, false);
+    document.getElementById('hs-r-hour').innerHTML = hlFirst(data.hour, true);
+    document.getElementById('hs-v-year').textContent = hsToViet(data.year);
+    document.getElementById('hs-v-month').textContent = hsToViet(data.month);
+    document.getElementById('hs-v-day').textContent = hsToViet(data.day);
+    document.getElementById('hs-v-hour').textContent = hsToViet(data.hour);
+
+    const timeOpt = document.getElementById('hs-dob-time');
+    const timeText = timeOpt.options[timeOpt.selectedIndex].text;
+    const emojiMatch = timeText.match(/[\u{1F300}-\u{1F9FF}]/u);
+    const emoji = emojiMatch ? emojiMatch[0] : '';
+    document.getElementById('hs-dob-meta').innerHTML = '📅 ' + HS_MON[parseInt(month)-1] + ' ' + hsOrdinal(parseInt(day)) + ', ' + year + '&emsp;' + emoji;
+
+    const n = parseInt(data.hsNum), c = hsGetColors(n), padded = String(n).padStart(3,'0');
+    [document.getElementById('hs-dob-btn-ran'), document.getElementById('hs-dob-btn-yuri')].forEach((b, i) => {
+      b.style.backgroundColor = c.bg; b.style.color = c.tx;
+      b.href = (i === 0 ? 'https://sites.google.com/view/BaziiiRan' : 'https://sites.google.com/view/BaziiiiYuri') + padded;
+    });
+    document.getElementById('hs-dob-num-ran').textContent = 'No. ' + n;
+    document.getElementById('hs-dob-num-ran').style.color = c.num;
+    document.getElementById('hs-dob-char-ran').textContent = HS_LABELS[n-1];
+    document.getElementById('hs-dob-num-yuri').textContent = 'No. ' + n;
+    document.getElementById('hs-dob-num-yuri').style.color = c.num;
+    document.getElementById('hs-dob-char-yuri').textContent = HS_LABELS[n-1];
+
+    btn.disabled = false; btn.textContent = 'Generate';
+    showFcsResults(data);
+    goTo('screen-result');
+  };
+  script.onerror = function() { cleanup(); errEl.textContent = 'Error. Try again.'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Generate'; };
+  script.src = url; document.head.appendChild(script);
+}
+
+function hsResetDOB() {
+  ['hs-dob-day','hs-dob-month','hs-dob-year','hs-dob-time'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('hs-dob-error').style.display = 'none';
+  document.getElementById('hs-gen-btn').disabled = false;
+  document.getElementById('hs-gen-btn').textContent = 'Generate';
+  ['fcs-ran-wrap','fcs-yuri-wrap'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+  ['fcs-ran-list','fcs-yuri-list','str-ran-wrap','str-yuri-wrap'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML=''; });
+}
+
+function hs2HsCopyText() {
+  const meta = document.getElementById('hs-dob-meta');
+  const yr = document.getElementById('hs-r-year');
+  const mo = document.getElementById('hs-r-month');
+  const dy = document.getElementById('hs-r-day');
+  const hr = document.getElementById('hs-r-hour');
+  const numRan = document.getElementById('hs-dob-num-ran');
+  const charRan = document.getElementById('hs-dob-char-ran');
+  const numYuri = document.getElementById('hs-dob-num-yuri');
+  const charYuri = document.getElementById('hs-dob-char-yuri');
+  const text = '2Hs Subportal — Bazi Result\n'
+    + (meta ? meta.textContent.trim() + '\n' : '')
+    + '\nBazi: ' + [yr,mo,dy,hr].map(e => e ? e.textContent.trim() : '').join(' | ')
+    + '\n\nBazi (ii) Ran: ' + (numRan ? numRan.textContent : '') + ' — ' + (charRan ? charRan.textContent : '')
+    + '\nBazi (iii) Yuri: ' + (numYuri ? numYuri.textContent : '') + ' — ' + (charYuri ? charYuri.textContent : '');
+  navigator.clipboard.writeText(text.trim());
+}
+
+function hs2HsCopyImage() {
+  const resultEl = document.querySelector('#screen-result');
+  if (!resultEl) { hs2HsCopyText(); return; }
+  if (typeof html2canvas !== 'undefined') {
+    html2canvas(resultEl, { backgroundColor: '#000073', scale: 2 }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = '2hs-result.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }).catch(() => hs2HsCopyText());
+  } else {
+    hs2HsCopyText();
+  }
+}
+
+function renderFcsItem(containerId, item, showCheck) {
+  const el = document.getElementById(containerId);
+  if (!el || !item) return;
+  el.innerHTML = '';
+  if (!item.cn && !item.vn && !item.en) return;
+  const row = document.createElement('div');
+  row.className = 'fcs-row';
+  const emojiBox = document.createElement('div');
+  emojiBox.className = 'fcs-emoji-box';
+  emojiBox.textContent = item.emoji || '';
+  const mrBox = document.createElement('div');
+  mrBox.className = 'fcs-mr-box';
+  if (item.cn) { const d = document.createElement('div'); d.className = 'fcs-cn'; d.textContent = item.cn; mrBox.appendChild(d); }
+  if (item.vn) { const d = document.createElement('div'); d.className = 'fcs-vn'; d.textContent = item.vn + (item.vnAlt ? ' ~ ' + item.vnAlt : ''); mrBox.appendChild(d); }
+  if (item.en) { const d = document.createElement('div'); d.className = 'fcs-en'; d.textContent = item.en; mrBox.appendChild(d); }
+  const checkBox = document.createElement('div');
+  checkBox.className = 'fcs-check-box';
+  if (showCheck && item.check && item.check.trim() !== '') checkBox.textContent = '✓';
+  row.appendChild(emojiBox); row.appendChild(mrBox); row.appendChild(checkBox);
+  el.appendChild(row);
+}
+
+function showFcsResults(data) {
+  if (data.ran4Cs && data.ran4Cs.cn) {
+    renderFcsItem('fcs-ran-list', data.ran4Cs, true);
+    const el = document.getElementById('fcs-ran-wrap'); if(el) el.style.display='block';
+  }
+  if (data.ranStr && data.ranStr.cn) { renderFcsItem('str-ran-wrap', data.ranStr, false); }
+  if (data.yuri4Cs && data.yuri4Cs.cn) {
+    renderFcsItem('fcs-yuri-list', data.yuri4Cs, false);
+    const el = document.getElementById('fcs-yuri-wrap'); if(el) el.style.display='block';
+  }
+  if (data.yuriStr && data.yuriStr.cn) { renderFcsItem('str-yuri-wrap', data.yuriStr, false); }
+}
+
+function hsBuildDirGrid(gridId, baseUrl, orchid, isYuri) {
+  const grid = document.getElementById(gridId);
+  if (!grid || grid.children.length) return;
+  HS_LABELS.forEach((label, i) => {
+    const n = i + 1, c = hsGetColors(n);
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; width:100%;';
+    const el = document.createElement('a');
+    el.className = 'hs-btn';
+    el.style.backgroundColor = c.bg; el.style.color = c.tx;
+    el.href = baseUrl + String(n).padStart(3,'0');
+    el.target = '_blank';
+    el.innerHTML = '<img class="hs-btn-orchid" src="' + orchid + '"><div class="hs-btn-body"><div class="hs-btn-num" style="color:' + c.num + '">No. ' + n + '</div><div class="hs-btn-char">' + label + '</div></div>';
+    const hint = document.createElement('span');
+    hint.className = 'hs-btn-hint'; hint.textContent = 'Tap to open the 2Hs site ↗';
+    wrap.appendChild(el); wrap.appendChild(hint);
+    grid.appendChild(wrap);
+  });
+}
+
+function hsFilterDir(gridId, val) {
+  const grid = document.getElementById(gridId);
+  const num = parseInt(val);
+  Array.from(grid.children).forEach((wrap, i) => {
+    wrap.style.display = (!val || (i+1) === num) ? 'flex' : 'none';
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', function() {
+  checkOAuthReturn();
+  hsLoadClients();
+});
+</script>
+
+</body>
+</html>
