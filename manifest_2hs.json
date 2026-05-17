@@ -1,0 +1,22 @@
+{
+  "name": "2Hs Subportal · SPGo",
+  "short_name": "2Hs 🌸",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#000073",
+  "theme_color": "#000073",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/T1dbxVg1/Ran-Yuri-portal-logo-glow-CBFFC0.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://i.postimg.cc/T1dbxVg1/Ran-Yuri-portal-logo-glow-CBFFC0.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
