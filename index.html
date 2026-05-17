@@ -9,9 +9,9 @@
 <title>2Hs Subportal · SPGo</title>
 <meta property="og:title" content="2Hs Subportal · SPGo">
 <meta property="og:description" content="Find your 2Hs — Bazi (ii) Ran & Bazi (iii) Yuri lookup portal.">
-<meta property="og:image" content="https://i.postimg.cc/B6XzZF0y/Ran-Yuri-Logo-glow.png">
+<meta property="og:image" content="https://i.postimg.cc/T1dbxVg1/Ran-Yuri-portal-logo-glow-CBFFC0.png">
 <meta property="og:type" content="website">
-<link rel="icon" type="image/png" href="https://i.postimg.cc/B6XzZF0y/Ran-Yuri-Logo-glow.png">
+<link rel="icon" type="image/png" href="https://i.postimg.cc/T1dbxVg1/Ran-Yuri-portal-logo-glow-CBFFC0.png">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Noto+Serif+TC:wght@300;400&family=Aleo:wght@300;400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
@@ -871,8 +871,10 @@ function hsFilterDir(gridId, val) {
 window.addEventListener('DOMContentLoaded', function() {
   checkOAuthReturn();
   hsLoadClients();
-  // ping visit count
-  gasJsonp('action=ping&stat=visits_2hs', function() {}, function() {});
+  gasJsonp('action=ping&stat=visits_2hs', function(data) {
+    const el = document.getElementById('hs-visit-count');
+    if (el && data.count !== undefined) el.textContent = data.count.toLocaleString();
+  }, function() {});
 });
 </script>
 
